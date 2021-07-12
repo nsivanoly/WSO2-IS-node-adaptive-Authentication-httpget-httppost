@@ -1,3 +1,7 @@
+/**
+ * Adaptive Script for GET request
+ * @param context
+ */
 function onLoginRequest(context) {
     executeStep(1, {
         onSuccess: function (context) {
@@ -18,7 +22,10 @@ function onLoginRequest(context) {
     });
 }
 
-
+/**
+ * Adaptive Script for POST request
+ * @param context
+ */
 function onLoginRequest(context) {
     executeStep(1, {
         onSuccess: function (context) {
