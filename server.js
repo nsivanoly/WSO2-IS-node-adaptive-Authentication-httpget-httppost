@@ -9,6 +9,7 @@ app.get('/validate', (req, res) => {
   let mfa_required = false
 
   const email = req.query.email
+  const organization = req.query.organization
   const domain = email.split('@').pop()
 
   if (domain !== allowed_domain)
@@ -29,6 +30,7 @@ app.post('/validate', (req, res) => {
   let mfa_required = false
 
   const email = req.body.email
+  const organization = req.body.organization
   const domain = email.split('@').pop()
 
   if (domain !== allowed_domain)

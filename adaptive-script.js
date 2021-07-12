@@ -7,8 +7,9 @@ function onLoginRequest(context) {
         onSuccess: function (context) {
             var user = context.steps[1].subject;
             var email = user.localClaims['http://wso2.org/claims/emailaddress'];
+            var organization = user.localClaims['http://wso2.org/claims/organization'];
 
-            httpGet('http://localhost:3000/validate?email=' + email, {
+            httpGet('http://localhost:3000/validate?email=' + email + '&organization=' + organization, {
                 onSuccess : function(context, data) {
                     Log.info('--------------- Received mfa_required ' + data.mfa.required);
                     if (data.mfa.required) {
@@ -31,8 +32,9 @@ function onLoginRequest(context) {
         onSuccess: function (context) {
             var user = context.steps[1].subject;
             var email = user.localClaims['http://wso2.org/claims/emailaddress'];
+            var organization = user.localClaims['http://wso2.org/claims/organization'];
 
-            httpPost('http://localhost:3000/validate', {"email": email}, {
+            httpPost('http://localhost:3000/validate', {"email": email, 'organization': organization}, {
                 onSuccess : function(context, data) {
                     Log.info('--------------- Received mfa_required ' + data.mfa.required);
                     if (data.mfa.required) {
