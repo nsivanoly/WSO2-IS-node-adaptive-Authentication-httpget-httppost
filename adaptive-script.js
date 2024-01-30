@@ -1,44 +1,49 @@
-// Define the URIs for the claims
-var claimFname = 'http://wso2.org/claims/addresses';
-var claimLname = 'http://wso2.org/claims/country';
-
-// Define the login request function
-var onLoginRequest = function(context) {
-    // Execute step 1 of the authentication flow
+/**
+ * Adaptive Script for GET request
+ * @param context
+ */
+function onLoginRequest(context) {
     executeStep(1, {
-        onSuccess: function(context) {
-            // Retrieve the known subject and username from the context
-            subject = context.currentKnownSubject;
-            var username = context.steps[1].subject.username;
+        onSuccess: function (context) {
+            var user = context.steps[1].subject;
+            var email = user.localClaims['http://wso2.org/claims/emailaddress'];
+            var organization = user.localClaims['http://wso2.org/claims/organization'];
 
-            // Prompt the user for additional information using a generic form
-            prompt("genericForm", {
-                "username": username,
-                "inputs": [{"id": "fname", "label": "First Name"}, {"id": "lname", "label": "Last Name"}]
-            }, {
-                onSuccess: function(context) {
-                    // Retrieve the first name and last name from the form submission
-                    var fname = context.request.params.fname[0];
-                    var lname = context.request.params.lname[0];
-
-                    // Perform an HTTP POST request to validate the user information
-                    httpPost('http://localhost:3000/validate', {"fname": fname, 'lname': lname}, {
-                        onSuccess : function(context, data) {
-                            // Handle the successful response from the validation endpoint
-                            Log.info('--------------- Received data from MJ');
-                            var jurisdiction = data.jurisdiction;
-                            var company_id = data.company_id;
-
-                            // Update the claims in the subject with validated information
-                            subject.claims[claimFname] = jurisdiction;
-                            subject.claims[claimLname] = company_id;
-                        }, onFail : function(context, data) {
-                            // Handle the failure to call the validation URL
-                            Log.info('--------------- Failed to call URL');
-                        }
-                    });
+            httpGet('http://localhost:3000/validate?email=' + email + '&organization=' + organization, {
+                onSuccess : function(context, data) {
+                    Log.info('--------------- Received mfa_required ' + data.mfa.required);
+                    if (data.mfa.required) {
+                        executeStep(2);
+                    }
+                }, onFail : function(context, data) {
+                    Log.info('--------------- Failed to call URL');
                 }
             });
         }
     });
-};
+}
+
+/**
+ * Adaptive Script for POST request
+ * @param context
+ */
+function onLoginRequest(context) {
+    executeStep(1, {
+        onSuccess: function (context) {
+            var user = context.steps[1].subject;
+            var email = user.localClaims['http://wso2.org/claims/emailaddress'];
+            var organization = user.localClaims['http://wso2.org/claims/organization'];
+
+            httpPost('http://localhost:3000/validate', {"email": email, 'organization': organization}, {
+                onSuccess : function(context, data) {
+                    Log.info('--------------- Received mfa_required ' + data.mfa.required);
+                    if (data.mfa.required) {
+                        executeStep(2);
+                    }
+                }, onFail : function(context, data) {
+                    Log.info('--------------- Failed to call URL');
+                }
+            });
+        }
+    });
+}
